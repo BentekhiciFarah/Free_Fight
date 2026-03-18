@@ -15,8 +15,6 @@ public abstract class Troupe { // car c'est une base commune à toutes les troup
         this.speed = speed;
     }
 
-    // public abstract void move(); // chaque troupe a une façon différente de se déplacer
-
     // public abstract void attack(Troupe target); // chaque troupe a une façon différente d'attaquer
 
     /* public void takeDamage(int damage) {
@@ -31,19 +29,10 @@ public abstract class Troupe { // car c'est une base commune à toutes les troup
     }
         */
     
+    // Méthode pour déplacer une troupe vers une position cible (targetX, targetY).
+    // Comparer la position actuelle avec la destination et déplacer la troupe
+    // progressivement selon sa vitesse sans dépasser la position cible.
     public void moveTo(int targetX, int targetY) {
-
-        /*
-         * Cette méthode compare la position actuelle de la troupe
-         * avec la position cible.
-         *
-         * - Si la troupe est avant la destination sur l’axe X,
-         *   elle avance.
-         * - Si elle est après la destination, elle recule.
-         *
-         * On applique la même logique pour l’axe Y.
-         */
-
         if (x < targetX) {
             x += speed;
             if (x > targetX) x = targetX;
@@ -61,9 +50,12 @@ public abstract class Troupe { // car c'est une base commune à toutes les troup
         }
     }
 
+    // Vérifier si la troupe est arrivée à la position cible.
     public boolean isArrived(int targetX, int targetY) {
+
         return x == targetX && y == targetY;
     }
+
 
     // Getters
     public int getX() {

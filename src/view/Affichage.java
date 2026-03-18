@@ -65,36 +65,39 @@ public class Affichage extends JFrame {
 
         MapPanel() {
             setBackground(new Color(34, 139, 34));
-            addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    int mx = e.getX();
-                    int my = e.getY();
 
-                    // 1. Sélection d'une troupe
-                    Troupe t = getTroupeAtPosition(mx, my);
-                    if (t != null) {
-                        troupeSelectionnee = t;
-                        repaint();
-                        return;
-                    }
+                addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        int mx = e.getX();
+                        int my = e.getY();
 
-                    // 2. Si une troupe est sélectionnée, elle se dirige vers le bâtiment le plus proche
-                    if (troupeSelectionnee != null) {
-                        Batiment cible = getBatimentLePlusProche(
-                            troupeSelectionnee.getX(),
-                            troupeSelectionnee.getY()
-                        );
-                        if (cible != null) {
-                            destinationX = cible.getX();
-                            destinationY = cible.getY();
+                        // 1. Sélection d'une troupe
+                        Troupe t = getTroupeAtPosition(mx, my);
+                        if (t != null) {
+                            troupeSelectionnee = t;
+                            repaint();
+                            return;
+                        }
+
+                        // 2. Si une troupe est sélectionnée et qu'on clique sur l'hôtel
+                        int hotelX = 375;
+                        int hotelY = 290;
+                        int hotelWidth = 50;
+                        int hotelHeight = 50;
+
+                        if (troupeSelectionnee != null &&
+                                mx >= hotelX && mx <= hotelX + hotelWidth &&
+                                my >= hotelY && my <= hotelY + hotelHeight) {
+
+                            destinationX = hotelX;
+                            destinationY = hotelY;
                             enDeplacement = true;
                         }
                     }
-                }
-            });
-        }
+                });
 
+        }
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -111,10 +114,14 @@ public class Affichage extends JFrame {
             drawAvatars(g);
         }
 
+     // Méthode qui retourne la troupe située à la position du clic de la souris.
+        // Parcourir la liste des troupes et vérifier si les coordonnées de la souris
+        // Si une troupe est trouvée, la retourner, sinon retourner null.
         private Troupe getTroupeAtPosition(int mouseX, int mouseY) {
             for (Troupe t : troupes) {
                 int tx = t.getX();
                 int ty = t.getY();
+
                 if (mouseX >= tx && mouseX <= tx + 40 &&
                         mouseY >= ty && mouseY <= ty + 40) {
                     return t;
@@ -123,6 +130,9 @@ public class Affichage extends JFrame {
             return null;
         }
 
+        // Méthode qui dessine toutes les troupes sur la carte.
+        // Parcourir la liste des troupes et afficher l'image correspondant au type
+        // de troupe (Barbare, Sorcier, Pekka) à sa position.
         private void dessinerTroupes(Graphics g) {
             for (Troupe t : troupes) {
                 if (t instanceof Barbare) {
