@@ -28,6 +28,8 @@ public class Affichage extends JFrame {
     private Image barbareImg;
     private Image sorcierImg;
     private Image pekkaImg;
+    
+    private static final long serialVersionUID = 1L;
 
     public Affichage(List<Troupe> troupes) {
 
@@ -101,6 +103,8 @@ public class Affichage extends JFrame {
 
         private static final int CELL = 50;
         private static final int DEF_SIZE = 30;
+        
+        private static final long serialVersionUID = 1L;
 
         MapPanel() {
             setBackground(new Color(34, 139, 34));
