@@ -7,20 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 import model.*;
 
-
 public class Affichage extends JFrame {
 
     private final List<Defense> defenses = new ArrayList<>();
     private final Batiment hotelDeVille = new Batiment("Hôtel de Ville", 1500, 375, 290);
     private Point clickPoint = null;
     private final List<Defense> defensesEnPortee = new ArrayList<>();
-  
+
     private List<Troupe> troupes;
-    
     private Troupe troupeSelectionnee = null;
-    private boolean enDeplacement = false;
-    private int destinationX;
-    private int destinationY;
 
     private Image barbareImg;
     private Image sorcierImg;
@@ -28,32 +23,29 @@ public class Affichage extends JFrame {
 
     public Affichage(List<Troupe> troupes) {
 
-        defenses.add(new Defense("Canon",        200, 150, 200, 200));
-        defenses.add(new Defense("Tour Archer",  100, 220, 500, 280));
-        defenses.add(new Defense("Mortier",      300, 180, 360, 430));
+        defenses.add(new Defense("Canon", 200, 150, 200, 200));
+        defenses.add(new Defense("Tour Archer", 100, 220, 500, 280));
+        defenses.add(new Defense("Mortier", 300, 180, 360, 430));
 
         setTitle("FreeFight – Test Portée Défenses");
         setSize(1280, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        
+
         barbareImg = new ImageIcon("res/barbare.png").getImage();
         sorcierImg = new ImageIcon("res/sorcier.png").getImage();
-        pekkaImg   = new ImageIcon("res/pekka.png").getImage();
+        pekkaImg = new ImageIcon("res/pekka.png").getImage();
 
         add(new MapPanel());
         setVisible(true);
         this.troupes = troupes;
         setBackground(new Color(34, 139, 34));
-        
+
         Timer timer = new Timer(40, e -> {
-            if (enDeplacement && troupeSelectionnee != null) {
-                troupeSelectionnee.moveTo(destinationX, destinationY);
-                if (troupeSelectionnee.isArrived(destinationX, destinationY)) {
-                    enDeplacement = false;
-                }
-                repaint();
+            for (Troupe t : troupes) {
+                t.agir(defenses, hotelDeVille, new ArrayList<Batiment>());
             }
+            repaint();
         });
         timer.start();
     }
@@ -66,38 +58,22 @@ public class Affichage extends JFrame {
         MapPanel() {
             setBackground(new Color(34, 139, 34));
 
-                addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        int mx = e.getX();
-                        int my = e.getY();
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    int mx = e.getX();
+                    int my = e.getY();
 
-                        // 1. Sélection d'une troupe
-                        Troupe t = getTroupeAtPosition(mx, my);
-                        if (t != null) {
-                            troupeSelectionnee = t;
-                            repaint();
-                            return;
-                        }
-
-                        // 2. Si une troupe est sélectionnée et qu'on clique sur l'hôtel
-                        int hotelX = 375;
-                        int hotelY = 290;
-                        int hotelWidth = 50;
-                        int hotelHeight = 50;
-
-                        if (troupeSelectionnee != null &&
-                                mx >= hotelX && mx <= hotelX + hotelWidth &&
-                                my >= hotelY && my <= hotelY + hotelHeight) {
-
-                            destinationX = hotelX;
-                            destinationY = hotelY;
-                            enDeplacement = true;
-                        }
+                    Troupe t = getTroupeAtPosition(mx, my);
+                    if (t != null) {
+                        troupeSelectionnee = t;
                     }
-                });
 
+                    repaint();
+                }
+            });
         }
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -108,58 +84,28 @@ public class Affichage extends JFrame {
             dessinerHotelDeVille(g2);
             dessinerDefenses(g2);
             dessinerResultat(g2);
+
             g.setColor(new Color(50, 50, 50));
             g.fillRect(0, getHeight() - 100, getWidth(), 100);
+
             dessinerTroupes(g);
             drawAvatars(g);
         }
 
-     // Méthode qui retourne la troupe située à la position du clic de la souris.
-        // Parcourir la liste des troupes et vérifier si les coordonnées de la souris
-        // Si une troupe est trouvée, la retourner, sinon retourner null.
-        private Troupe getTroupeAtPosition(int mouseX, int mouseY) {
-            for (Troupe t : troupes) {
-                int tx = t.getX();
-                int ty = t.getY();
-
-                if (mouseX >= tx && mouseX <= tx + 40 &&
-                        mouseY >= ty && mouseY <= ty + 40) {
-                    return t;
-                }
-            }
-            return null;
-        }
-
-        // Méthode qui dessine toutes les troupes sur la carte.
-        // Parcourir la liste des troupes et afficher l'image correspondant au type
-        // de troupe (Barbare, Sorcier, Pekka) à sa position.
-        private void dessinerTroupes(Graphics g) {
-            for (Troupe t : troupes) {
-                if (t instanceof Barbare) {
-                    g.drawImage(barbareImg, t.getX(), t.getY(), 40, 40, Affichage.this);
-                } else if (t instanceof Sorcier) {
-                    g.drawImage(sorcierImg, t.getX(), t.getY(), 40, 40, Affichage.this);
-                } else if (t instanceof Pekka) {
-                    g.drawImage(pekkaImg, t.getX(), t.getY(), 40, 40, Affichage.this);
-                }
-                if (t == troupeSelectionnee) {
-                    g.drawRect(t.getX(), t.getY(), 40, 40);
-                }
-            }
-        }
-
         private void dessinerGrille(Graphics2D g2) {
             g2.setColor(new Color(0, 80, 0, 90));
-            for (int x = 0; x < getWidth(); x += CELL)  g2.drawLine(x, 0, x, getHeight());
+            for (int x = 0; x < getWidth(); x += CELL) g2.drawLine(x, 0, x, getHeight());
             for (int y = 0; y < getHeight(); y += CELL) g2.drawLine(0, y, getWidth(), y);
         }
 
         private void dessinerDefenses(Graphics2D g2) {
             for (Defense d : defenses) {
+                if (d.estDetruit()) continue;
+
                 boolean touchee = defensesEnPortee.contains(d);
 
-                Color fillPortee   = touchee ? new Color(255, 50,  50,  55) : new Color(255, 200, 0, 40);
-                Color strokePortee = touchee ? new Color(255, 50,  50, 160) : new Color(255, 200, 0, 140);
+                Color fillPortee = touchee ? new Color(255, 50, 50, 55) : new Color(255, 200, 0, 40);
+                Color strokePortee = touchee ? new Color(255, 50, 50, 160) : new Color(255, 200, 0, 140);
                 int rx = d.getX() - d.getPortee();
                 int ry = d.getY() - d.getPortee();
                 int rd = d.getPortee() * 2;
@@ -198,6 +144,8 @@ public class Affichage extends JFrame {
         }
 
         private void dessinerHotelDeVille(Graphics2D g2) {
+            if (hotelDeVille.estDetruit()) return;
+
             final int SIZE = 50;
             int x = hotelDeVille.getX();
             int y = hotelDeVille.getY();
@@ -211,8 +159,8 @@ public class Affichage extends JFrame {
             g2.drawRect(bx, by, SIZE, SIZE);
             g2.setStroke(new BasicStroke(1));
 
-            int[] xs = { bx, bx + SIZE / 2, bx + SIZE };
-            int[] ys = { by, by - 18, by };
+            int[] xs = {bx, bx + SIZE / 2, bx + SIZE};
+            int[] ys = {by, by - 18, by};
             g2.setColor(new Color(160, 82, 45));
             g2.fillPolygon(xs, ys, 3);
             g2.setColor(new Color(255, 215, 0));
@@ -276,24 +224,34 @@ public class Affichage extends JFrame {
             g2.setColor(defensesEnPortee.isEmpty() ? new Color(100, 230, 100) : new Color(255, 100, 100));
             g2.drawString(msg, 20, 27);
         }
-    }
 
-    private Batiment getBatimentLePlusProche(int x, int y) {
-        List<Batiment> batiments = new ArrayList<>();
-        batiments.add(hotelDeVille);
-        batiments.addAll(defenses);
+        private Troupe getTroupeAtPosition(int mouseX, int mouseY) {
+            for (Troupe t : troupes) {
+                int tx = t.getX();
+                int ty = t.getY();
 
-        Batiment lePlusProche = null;
-        double distMin = Double.MAX_VALUE;
+                if (mouseX >= tx && mouseX <= tx + 40 &&
+                        mouseY >= ty && mouseY <= ty + 40) {
+                    return t;
+                }
+            }
+            return null;
+        }
 
-        for (Batiment b : batiments) {
-            double dist = Math.sqrt(Math.pow(b.getX() - x, 2) + Math.pow(b.getY() - y, 2));
-            if (dist < distMin) {
-                distMin = dist;
-                lePlusProche = b;
+        private void dessinerTroupes(Graphics g) {
+            for (Troupe t : troupes) {
+                if (t instanceof Barbare) {
+                    g.drawImage(barbareImg, t.getX(), t.getY(), 40, 40, Affichage.this);
+                } else if (t instanceof Sorcier) {
+                    g.drawImage(sorcierImg, t.getX(), t.getY(), 40, 40, Affichage.this);
+                } else if (t instanceof Pekka) {
+                    g.drawImage(pekkaImg, t.getX(), t.getY(), 40, 40, Affichage.this);
+                }
+                if (t == troupeSelectionnee) {
+                    g.drawRect(t.getX(), t.getY(), 40, 40);
+                }
             }
         }
-        return lePlusProche;
     }
 
     private void drawAvatars(Graphics g) {

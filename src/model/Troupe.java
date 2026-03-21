@@ -1,5 +1,9 @@
 package model;
 
+import java.util.List;
+
+import static java.awt.geom.Point2D.distance;
+
 public abstract class Troupe { // car c'est une base commune à toutes les troupes
     protected int x;    // position x de la troupe
     protected int y;    // position y de la troupe
@@ -15,20 +19,6 @@ public abstract class Troupe { // car c'est une base commune à toutes les troup
         this.speed = speed;
     }
 
-    // public abstract void attack(Troupe target); // chaque troupe a une façon différente d'attaquer
-
-    /* public void takeDamage(int damage) {
-        health -= damage; // la troupe perd des points de vie lorsqu'elle subit des dégâts
-        if (health < 0) {
-            health = 0; // la santé ne peut pas être négative
-        }
-    }
-    
-    public boolean isAlive() {
-        return health > 0; // la troupe est vivante si elle a plus de 0 points de vie
-    }
-        */
-    
     // Méthode pour déplacer une troupe vers une position cible (targetX, targetY).
     // Comparer la position actuelle avec la destination et déplacer la troupe
     // progressivement selon sa vitesse sans dépasser la position cible.
@@ -56,7 +46,6 @@ public abstract class Troupe { // car c'est une base commune à toutes les troup
         return x == targetX && y == targetY;
     }
 
-
     // Getters
     public int getX() {
         return x;
@@ -66,5 +55,53 @@ public abstract class Troupe { // car c'est une base commune à toutes les troup
     }
     public int getHealth() {
         return health;
+    }
+
+    public Batiment trouverPlusProche(List<? extends Batiment> liste) {
+        Batiment plusProche = null;
+        double minDistance = Double.MAX_VALUE;
+
+        for (Batiment b : liste) {
+            if (b == null || b.estDetruit()) continue;
+
+            double dist = distance(this.x, this.y, b.getX(), b.getY());
+
+            if (dist < minDistance) {
+                minDistance = dist;
+                plusProche = b;
+            }
+        }
+
+        return plusProche;
+    }
+
+    public Batiment choisirCible(List<? extends Batiment> defenses,
+                                 Batiment chateauDeClan,
+                                 List<? extends Batiment> autresBatiments) {
+        Batiment cible = trouverPlusProche(defenses);
+
+        if (cible == null && chateauDeClan != null && !chateauDeClan.estDetruit()) {
+            cible = chateauDeClan;
+        }
+
+        if (cible == null) {
+            cible = trouverPlusProche(autresBatiments);
+        }
+
+        return cible;
+    }
+
+    public void agir(List<? extends Batiment> defenses,
+                     Batiment chateauDeClan,
+                     List<? extends Batiment> autresBatiments) {
+        Batiment cible = choisirCible(defenses, chateauDeClan, autresBatiments);
+
+        if (cible == null) return;
+
+        if (!isArrived(cible.getX(), cible.getY())) {
+            moveTo(cible.getX(), cible.getY());
+        } else {
+            cible.prendreDegats(damage);
+        }
     }
 }

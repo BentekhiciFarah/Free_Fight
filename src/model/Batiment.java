@@ -22,4 +22,13 @@ public class Batiment {
     public String toString() {
         return nom + " [PV: " + pv + "] | Pos: (" + x + ", " + y + ")";
     }
+
+    public void prendreDegats(int degats) {
+        pv -= degats;
+        if (pv < 0) pv = 0;
+    }
+
+    public boolean estDetruit() {
+        return pv <= 0;
+    }
 }
